@@ -2,7 +2,7 @@ package edu.stanford.mafalda.myelp
 
 import com.google.gson.annotations.SerializedName
 
-//We will convert the JSon data into kotlin classes
+//Convert the JSon data into kotlin classes
 
 data class YelpSearchResult(
     @SerializedName("total") val total: Int,
@@ -22,7 +22,7 @@ data class YelpRestaurant(
     fun displayDistance(): String {
         val milesPerMeter = 0.000621371
         val distanceInMiles = "%.2f".format(distanceInMeters * milesPerMeter)
-        return "$distanceInMiles"
+        return "$distanceInMiles mi"
     }
 }
 

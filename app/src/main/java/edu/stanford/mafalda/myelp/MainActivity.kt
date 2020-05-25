@@ -3,6 +3,8 @@ package edu.stanford.mafalda.myelp
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
+import androidx.recyclerview.widget.LinearLayoutManager
+import kotlinx.android.synthetic.main.activity_main.*
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -18,23 +20,36 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        val restaurants = mutableListOf<YelpRestaurant>()
+        val adapter = RestaurantsAdapter(this, restaurants)
+        rvRestaurants.adapter = adapter
+        rvRestaurants.layoutManager = LinearLayoutManager(this)
+
         // 1. Create the retrofit instance
-        val retrofit = Retrofit.Builder().baseUrl(BASE_URL).addConverterFactory(GsonConverterFactory.create()).build()
+        val retrofit =
+            Retrofit.Builder().baseUrl(BASE_URL).addConverterFactory(GsonConverterFactory.create())
+                .build()
         // 2. Define the endpoints (they will go inside of an interface called YelpService)
-        // 3. start referencing the YeloService
+        // 3. start referencing the YelpService
         val yelpService = retrofit.create(YelpService::class.java)
         // Make the yelpService call the function we created "searchRestaurants" with the 3 terms - header, query and query
-        yelpService.searchRestaurants("Bearer $API_KEY","AvocadoToast", "New York").enqueue(object: Callback<Any> {
-            override fun onFailure(call: Call<Any>, t: Throwable) {
+        yelpService.searchRestaurants("Bearer $API_KEY", "Avocado", "Palo Alto").enqueue(object: Callback<YelpSearchResult> {
+
+            override fun onResponse(call: Call<YelpSearchResult>, response: Response<YelpSearchResult>) {
+                Log.i(TAG, "onResponse $response")
+                val body = response.body()
+                if (body == null) {
+                    Log.w(TAG, "Did not receive valid response body from Yelp API... exiting")
+                    return
+                }
+                restaurants.addAll(body.restaurants)
+                adapter.notifyDataSetChanged()
+            }
+
+            override fun onFailure(call: Call<YelpSearchResult>, t: Throwable) {
                 Log.i(TAG, "onFailure $t")
             }
 
-            override fun onResponse(call: Call<Any>, response: Response<Any>) {
-                Log.i(TAG, "onResponse $response")
-            }
-
         })
-        //
-
     }
 }
